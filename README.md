@@ -90,3 +90,6 @@ Sans le terminal : sur github.com, ouvrez le fichier, cliquez sur le crayon, mod
 - `public/_headers` définit les en-têtes de sécurité (HTTPS forcé, interdiction de l'affichage dans un cadre, politique de contenu).
 - Aucun secret, mot de passe ou clé n'est nécessaire au site : n'en ajoutez jamais dans le dépôt.
 - Le CV publié ne contient pas de numéro de téléphone. Vérifiez-le à chaque remplacement.
+- La branche `main` est protégée sur GitHub : elle ne peut être ni supprimée ni écrasée (force push interdit).
+- `public/.well-known/security.txt` indique où signaler une faille. **Avant le 28 octobre 2027**, repoussez sa date `Expires` d'un an.
+- Côté Cloudflare : HTTPS forcé (Always Use HTTPS), TLS 1.2 minimum, DNSSEC et DMARC (`p=reject`) actifs.

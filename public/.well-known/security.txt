@@ -1,0 +1,5 @@
+# Signaler une faille de sécurité sur doriankihouba.com
+Contact: mailto:contact@doriankihouba.com
+Expires: 2027-10-28T00:00:00.000Z
+Preferred-Languages: fr, en
+Canonical: https://doriankihouba.com/.well-known/security.txt
