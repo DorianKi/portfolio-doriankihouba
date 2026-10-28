@@ -1,0 +1,32 @@
+---
+// Mesure TACE réécrite de mémoire et anonymisée (noms de tables et de colonnes génériques).
+---
+<figure class="annexe">
+  <figcaption>Annexe 3.1 · Taux d'activité congés exclus (TACE) · mesure DAX</figcaption>
+  <pre aria-label="Mesure DAX du taux d'activité congés exclus"><code><span class="c">-- Mesure réécrite de mémoire et anonymisée ; structure fidèle à celle utilisée en mission.</span>
+<span class="k">TACE %</span> =
+VAR JoursDeclares =
+    SUM ( Temps[Valeur jour] )        <span class="c">-- 1 = journée, 0,5 = demi-journée</span>
+VAR JoursAbsence =
+    CALCULATE (
+        SUM ( Temps[Valeur jour] ),
+        Temps[Type de jour] IN {'{ "Maladie", "Congés", "Férié" }'}
+    )
+VAR JoursTravailles =
+    JoursDeclares - JoursAbsence      <span class="c">-- jours ouvrés réellement travaillés</span>
+VAR JoursImputes =
+    CALCULATE (
+        SUM ( Temps[Valeur jour] ),
+        Temps[Imputé projet] = TRUE ()
+    )
+RETURN
+    DIVIDE ( JoursImputes, JoursTravailles )</code></pre>
+</figure>
+
+<style>
+  .annexe { margin: 8px 0 0; display: grid; gap: 8px; }
+  figcaption { font-family: var(--mono); font-size: 12px; color: var(--encre-2); }
+  pre { margin: 0; background: var(--papier-2); border-left: 3px solid var(--encre); padding: 14px 16px; font-family: var(--mono); font-size: 13px; line-height: 1.55; overflow-x: auto; }
+  .c { color: var(--encre-2); }
+  .k { color: var(--orange-texte); font-weight: 600; }
+</style>

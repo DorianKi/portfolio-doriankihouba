@@ -1,0 +1,116 @@
+<figure class="fig-dash" id="dash-alt">
+  <div class="top"><b>Figure 3.3 · Les alternants de l'EM Normandie, 2018 → 2020</b></div>
+  <div class="mois" role="group" aria-label="Secteur d'activité" id="al-secteurs"></div>
+  <div class="panels">
+    <div class="panel"><span class="t">Top 5 des fonctions</span><svg id="al-fonc" viewBox="0 0 300 170" role="img" aria-label="Nombre d'alternants par fonction"></svg></div>
+    <div class="panel"><span class="t">Où travaillent-ils ? · carte schématique du nord-ouest</span><svg id="al-carte" viewBox="0 0 300 260" role="img" aria-label="Carte schématique du nord-ouest de la France avec le nombre d'alternants par ville"></svg></div>
+    <div class="panel wide"><span class="t">Entreprises qui recrutent le plus</span><svg id="al-ent" viewBox="0 0 540 150" role="img" aria-label="Nombre d'alternants par entreprise, couleur selon le secteur"></svg></div>
+  </div>
+  <p class="profil-type" id="al-profil" aria-live="polite"></p>
+  <div class="tip" hidden></div>
+  <figcaption class="source">Source : base de données de Dorian Kihouba (alternants 2018 → 2020), article LinkedIn du 29/01/2021. Classements conformes à l'article ; seuls 13 contrôleurs de gestion, 12 responsables clientèle et 20 alternants dans les trois banques y sont chiffrés. Les autres valeurs sont illustratives.</figcaption>
+</figure>
+
+<style is:global>
+  #dash-alt .panels { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  @media (max-width: 560px) { #dash-alt .panels { grid-template-columns: minmax(0, 1fr); } }
+  #dash-alt .profil-type { font-family: var(--mono); font-size: 13px; color: var(--blanc); border-left: 3px solid var(--orange); padding-left: 10px; }
+</style>
+
+<script>
+  import { el, infobulle, boutons, presser, MONO } from '../../scripts/viz.js';
+
+  const fig = document.getElementById('dash-alt');
+  const tip = infobulle(fig);
+  const SECTEURS = ['Services', 'Banque & assurance', 'Industrie', 'Autres secteurs'];
+  const COUL = ['#3987e5', '#d95926', '#199e70', '#8D97B5'];
+  // [secteur, fonction, ville, entreprise, nombre] : classements conformes à l'article, valeurs illustratives
+  const L = [
+    [0, 'Commercial', 'Paris', 'Unilever', 6], [0, 'Assistant marketing', 'Paris', 'Unilever', 3], [0, 'Commercial', 'Paris', 'Autres', 7],
+    [0, 'Commercial', 'Rouen', 'Auchan', 2], [0, 'Contrôleur de gestion', 'Paris', 'KPMG', 4], [0, 'Chargé de communication', 'Paris', 'Autres', 4],
+    [0, 'Assistant marketing', 'Caen', 'Autres', 3], [0, 'Commercial', 'Rennes', 'Autres', 3], [0, 'Commercial', 'Compiègne', 'Auchan', 2],
+    [1, 'Responsable clientèle', 'Le Havre', 'Crédit Agricole', 4], [1, 'Contrôleur de gestion', 'Le Havre', 'Crédit Agricole', 4],
+    [1, 'Responsable clientèle', 'Paris', 'Société Générale', 4], [1, 'Commercial', 'Paris', 'Société Générale', 3],
+    [1, 'Responsable clientèle', 'Lille', 'Crédit du Nord', 3], [1, 'Contrôleur de gestion', 'Rouen', 'Crédit du Nord', 2], [1, 'Responsable clientèle', 'Caen', 'Autres', 1],
+    [2, 'Contrôleur de gestion', 'Le Havre', 'Sidel', 3], [2, 'Commercial', 'Rouen', 'Engie', 2], [2, 'Chargé de communication', 'Paris', 'Engie', 1],
+    [2, 'Commercial', 'Le Havre', 'Autres', 2], [2, 'Assistant marketing', 'Rennes', 'Autres', 1],
+    [3, 'Chargé de communication', 'Paris', 'Autres', 2], [3, 'Assistant marketing', 'Compiègne', 'Autres', 1], [3, 'Commercial', 'Caen', 'Autres', 2],
+  ];
+  const VILLES = { 'Paris': [2.35, 48.86], 'Le Havre': [0.11, 49.49], 'Rouen': [1.1, 49.44], 'Caen': [-0.37, 49.18], 'Rennes': [-1.68, 48.11], 'Compiègne': [2.83, 49.42], 'Lille': [3.06, 50.63] };
+  const FRANCE = [[2.5, 51.1], [4.2, 50.0], [5.8, 49.5], [8.2, 49.0], [7.6, 47.6], [6.0, 46.4], [7.0, 45.9], [7.7, 44.2], [6.6, 43.1], [4.6, 43.4], [3.1, 42.5], [1.7, 42.5], [-1.8, 43.4], [-1.2, 44.6], [-1.2, 46.2], [-2.5, 47.3], [-4.7, 47.9], [-4.6, 48.6], [-1.6, 48.7], [-1.4, 49.7], [0.2, 49.7], [1.5, 50.2]];
+  const P = (c) => [(c[0] + 5.6) * 29, (51.3 - c[1]) * 44];
+  const PROFILS = [
+    'Profil type : commercial dans les services, à Paris, chez Unilever.',
+    'Profil type : commercial dans les services, à Paris, chez Unilever.',
+    'Profil type : contrôleur de gestion ou responsable clientèle dans la banque, au Havre, au Crédit Agricole.',
+    "Profil type : contrôleur de gestion dans l'industrie, au Havre.",
+    'Petit effectif : surtout de la communication, à Paris.',
+  ];
+  const etat = { s: -1 };
+  const btns = boutons(document.getElementById('al-secteurs'), ['Tous les secteurs', ...SECTEURS], (i) => { etat.s = i - 1; rendre(); });
+
+  function compter(cle) {
+    const m = {};
+    L.forEach((r) => { if (etat.s < 0 || r[0] === etat.s) m[r[cle]] = (m[r[cle]] || 0) + r[4]; });
+    return Object.entries(m).sort((a, b) => b[1] - a[1]);
+  }
+  const survol = (cible, html) => {
+    cible.addEventListener('mousemove', (e) => tip.montrer(e, html));
+    cible.addEventListener('mouseleave', tip.cacher);
+  };
+
+  function rendre() {
+    presser(btns, (i) => i - 1 === etat.s);
+    const teinte = etat.s < 0 ? '#FF6B3D' : COUL[etat.s];
+
+    const f = document.getElementById('al-fonc'); f.innerHTML = '';
+    const fonc = compter(1).slice(0, 5), mx = fonc.length ? fonc[0][1] : 1;
+    fonc.forEach(([nom, n], i) => {
+      const y = 8 + i * 32, w = n / mx * 230;
+      el('text', { x: 0, y: y + 10, 'font-size': 11, fill: '#F7F8FC', 'font-family': MONO }, f, nom);
+      survol(el('rect', { x: 0, y: y + 15, width: Math.max(2, w), height: 10, rx: 2, fill: teinte }, f), `<b>${nom}</b><br>${n} alternants`);
+      el('text', { x: w + 8, y: y + 24, 'font-size': 11, fill: '#8D97B5', 'font-family': MONO }, f, n);
+    });
+
+    const c = document.getElementById('al-carte'); c.innerHTML = '';
+    const clip = el('clipPath', { id: 'al-clip' }, el('defs', {}, c));
+    el('rect', { x: 0, y: 0, width: 300, height: 260 }, clip);
+    el('path', { 'clip-path': 'url(#al-clip)', d: 'M' + FRANCE.map((p) => P(p).map((n) => n.toFixed(1)).join(' ')).join(' L') + ' Z', fill: '#0A1433', stroke: '#4A5A8C', 'stroke-width': 1.5 }, c);
+    const villes = compter(2), vmax = villes.length ? villes[0][1] : 1;
+    villes.forEach(([nom, n]) => {
+      const p = P(VILLES[nom]), rad = 3 + Math.sqrt(n / vmax) * 15;
+      survol(el('circle', { cx: p[0], cy: p[1], r: rad, fill: teinte, 'fill-opacity': 0.75, stroke: '#16224A', 'stroke-width': 2 }, c), `<b>${nom}</b><br>${n} alternants`);
+      const gauche = ['Le Havre', 'Caen', 'Rennes', 'Lille'].includes(nom);
+      const dessus = nom === 'Rouen' || nom === 'Compiègne';
+      el('text', {
+        x: gauche ? p[0] - rad - 4 : dessus ? p[0] : p[0] + rad + 4,
+        y: p[1] + (dessus ? -rad - 4 : 4),
+        'text-anchor': gauche ? 'end' : dessus ? 'middle' : 'start',
+        'font-size': 10, fill: '#F7F8FC', 'font-family': MONO, 'paint-order': 'stroke', stroke: '#16224A', 'stroke-width': 3,
+      }, c, `${nom} ${n}`);
+    });
+
+    const e2 = document.getElementById('al-ent'); e2.innerHTML = '';
+    const m = {};
+    L.forEach((r) => { if (r[3] !== 'Autres' && (etat.s < 0 || r[0] === etat.s)) { m[r[3]] = m[r[3]] || [0, r[0]]; m[r[3]][0] += r[4]; } });
+    const ent = Object.entries(m).map(([k, v]) => [k, v[0], v[1]]).sort((a, b) => b[1] - a[1]);
+    const emx = ent.length ? ent[0][1] : 1, bw = Math.min(52, 500 / Math.max(1, ent.length) - 12);
+    const court = { 'Société Générale': 'Soc. Gén.', 'Crédit Agricole': 'Créd. Agri.', 'Crédit du Nord': 'Créd. Nord' };
+    ent.forEach(([nom, n, s], i) => {
+      const x = 10 + i * (bw + 12), h = n / emx * 92;
+      survol(el('rect', { x, y: 112 - h, width: bw, height: h, rx: 3, fill: COUL[s] }, e2), `<b>${nom}</b> · ${SECTEURS[s]}<br>${n} alternants`);
+      el('text', { x: x + bw / 2, y: 106 - h, 'text-anchor': 'middle', 'font-size': 11, fill: '#F7F8FC', 'font-family': MONO }, e2, n);
+      el('text', { x: x + bw / 2, y: 128, 'text-anchor': 'middle', 'font-size': 9, fill: '#8D97B5', 'font-family': MONO }, e2, court[nom] || nom);
+    });
+    if (!ent.length) el('text', { x: 10, y: 60, 'font-size': 12, fill: '#8D97B5', 'font-family': MONO }, e2, 'Aucune entreprise nommée dans ce secteur.');
+    let leg = 0;
+    SECTEURS.slice(0, 3).forEach((s, k) => {
+      if (etat.s >= 0 && etat.s !== k) return;
+      el('rect', { x: 10 + leg, y: 140, width: 8, height: 8, fill: COUL[k] }, e2);
+      el('text', { x: 22 + leg, y: 148, 'font-size': 10, fill: '#8D97B5', 'font-family': MONO }, e2, s);
+      leg += s.length * 7 + 30;
+    });
+    document.getElementById('al-profil').textContent = PROFILS[etat.s + 1];
+  }
+  rendre();
+</script>

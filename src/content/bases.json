@@ -1,0 +1,5 @@
+[
+  {"id": "em-normandie", "ordre": 1, "periode": "2018 → 2023", "organisation": "EM Normandie", "role": "Programme Grande École, Comptabilité & Finance", "appris": "Contrôle de gestion, analyse financière, gestion de projet, marketing."},
+  {"id": "leeds", "ordre": 2, "periode": "2019 → 2020", "organisation": "Leeds Beckett University", "role": "Échange universitaire", "note": 2, "appris": "Étudier et travailler en anglais."},
+  {"id": "maasai", "ordre": 3, "periode": "2021 → 2023", "organisation": "Groupe Maasaï", "role": "Adjoint administratif et financier", "appris": "Factures de ~30 fournisseurs par mois, tableaux de suivi Excel, événements jusqu'à 250 personnes, plannings sur 2 établissements."}
+]

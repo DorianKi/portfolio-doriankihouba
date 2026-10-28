@@ -1,0 +1,32 @@
+---
+import site from '../content/site.json';
+---
+<section class="notes" aria-label="Notes">
+  <div class="inner">
+    <p><sup>1</sup> Septembre 2024 → mars 2026, en alternance avec le MSc Data Management de Paris School of Business et EFREI Paris (diplôme obtenu).</p>
+    <p><sup>2</sup> Octobre 2019 → janvier 2020, dans le cadre du Programme Grande École de l'EM Normandie.</p>
+  </div>
+</section>
+
+<section class="contact dark" id="contact" aria-labelledby="t-contact">
+  <div class="inner">
+    <p class="kicker"><span class="n">05</span><span>Contact</span></p>
+    <h2 class="big" id="t-contact">{site.contactTitre}</h2>
+    <p class="lede">{site.contactTexte}</p>
+    <div class="actions">
+      <a class="btn primary" href={site.linkedin} rel="noopener" target="_blank">Me contacter sur LinkedIn <span aria-hidden="true">↗</span></a>
+      <a class="btn ghost" href={site.cv} download>Télécharger mon CV</a>
+    </div>
+    <p class="liens"><a href={`mailto:${site.email}`}>{site.email}</a> · <a href={site.github} rel="noopener" target="_blank">github.com/DorianKi</a></p>
+  </div>
+</section>
+
+<style>
+  .notes .inner { font-size: 13px; color: var(--encre-2); display: grid; gap: 6px; padding-block: 28px; }
+  .contact .inner { padding-block: 80px 64px; display: grid; gap: 22px; }
+  .big { font-weight: 800; text-transform: uppercase; font-stretch: 70%; font-size: clamp(46px, 8.5vw, 120px); line-height: .9; letter-spacing: -.02em; max-width: 14ch; }
+  .lede { margin-top: 0; }
+  .liens { font-family: var(--mono); font-size: 15px; }
+  .liens a { text-underline-offset: 3px; }
+  .liens a:hover { color: var(--orange); }
+</style>

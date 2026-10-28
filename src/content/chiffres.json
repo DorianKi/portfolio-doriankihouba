@@ -1,0 +1,6 @@
+[
+  { "id": "orange", "ordre": 1, "valeur": "18", "libelle": "mois d'analyse de données chez Orange Business", "note": 1 },
+  { "id": "utilisateurs", "ordre": 2, "valeur": "~15", "libelle": "utilisateurs de mes tableaux de bord, mis à jour chaque mois" },
+  { "id": "fournisseurs", "ordre": 3, "valeur": "~30", "libelle": "fournisseurs suivis chaque mois au Groupe Maasaï" },
+  { "id": "projets", "ordre": 4, "valeur": "3", "libelle": "projets clés pour comprendre l'ensemble de mes compétences" }
+]

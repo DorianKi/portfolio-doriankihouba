@@ -1,0 +1,25 @@
+---
+import { getCollection } from 'astro:content';
+const bases = (await getCollection('bases')).sort((a, b) => a.data.ordre - b.data.ordre);
+---
+<section class="section" id="ch1" aria-labelledby="t-ch1">
+  <div class="inner">
+    <p class="kicker"><span class="n">01</span><span>Chapitre 1</span></p>
+    <h2 class="h-chap" id="t-ch1">Les bases business</h2>
+    <p class="lede">J'ai d'abord appris à lire une entreprise par ses chiffres : comptabilité, contrôle de gestion, factures fournisseurs. La data est venue ensuite, comme un meilleur outil pour répondre aux mêmes questions.</p>
+    <div class="scroll-x">
+      <table class="tableau">
+        <thead><tr><th scope="col">Période</th><th scope="col">Organisation et rôle</th><th scope="col">Ce que j'y ai appris</th></tr></thead>
+        <tbody>
+          {bases.map((b) => (
+            <tr>
+              <td>{b.data.periode}</td>
+              <td><strong>{b.data.organisation}</strong>{b.data.role}{b.data.note && <sup>{b.data.note}</sup>}</td>
+              <td>{b.data.appris}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>

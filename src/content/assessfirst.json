@@ -1,0 +1,8 @@
+[
+  {"id": "personnalite", "ordre": 1, "type": "dimension", "dimension": "Personnalité", "resultat": "Partenaire", "enClair": "Rigoureux, précis, structuré, à l'écoute des idées et des retours des autres."},
+  {"id": "motivations", "ordre": 2, "type": "dimension", "dimension": "Motivations", "resultat": "Propulser", "enClair": "Analyser des données, pousser les projets jusqu'au résultat, se dépasser au quotidien."},
+  {"id": "raisonnement", "ordre": 3, "type": "dimension", "dimension": "Raisonnement", "resultat": "Décision raisonnée", "enClair": "Prend le temps de valider ses décisions et apprend en testant par lui-même."},
+  {"id": "force-exactitude", "ordre": 5, "type": "force", "citation": "Viser l'exactitude en prenant soin de vérifier son travail", "exemple": "Exemple : contrôles de cohérence intégrés aux fichiers Excel et aux modèles Power BI chez Orange Business."},
+  {"id": "force-tact", "ordre": 6, "type": "force", "citation": "S'adapter à la sensibilité de l'interlocuteur", "exemple": "Exemple : ateliers et sessions Figma avec les équipes métier pour recueillir leurs besoins."},
+  {"id": "force-calme", "ordre": 4, "type": "force", "citation": "Garder son calme sous la pression", "exemple": "Exemple : le poste de gardien. Un but encaissé ne se rattrape pas en s'agaçant : il faut rester concentré, replacer sa défense et être prêt pour le tir suivant. Je garde ce réflexe quand une donnée est fausse la veille d'un comité ou que trois demandes urgentes arrivent en même temps."}
+]

@@ -1,0 +1,54 @@
+---
+import { getCollection } from 'astro:content';
+import DashOrange from './dash/DashOrange.astro';
+import DashBolt from './dash/DashBolt.astro';
+import DashAlternants from './dash/DashAlternants.astro';
+import AnnexeDax from './AnnexeDax.astro';
+
+const projets = (await getCollection('projets', ({ data }) => data.publie)).sort((a, b) => a.data.ordre - b.data.ordre);
+const demos = { orange: DashOrange, bolt: DashBolt, alternants: DashAlternants };
+---
+<section class="section papier" id="ch3" aria-labelledby="t-ch3">
+  <div class="inner">
+    <p class="kicker"><span class="n">03</span><span>Chapitre 3</span></p>
+    <h2 class="h-chap" id="t-ch3">Études de cas</h2>
+    {projets.map((p, i) => {
+      const Demo = p.data.demo ? demos[p.data.demo] : null;
+      return (
+        <article class="cas" id={`cas-${p.id}`} aria-labelledby={`t-${p.id}`}>
+          <div class="cas-corps">
+          <div class="cas-texte">
+            <p class="kicker"><span class="n">3.{i + 1}</span><span>{p.data.organisation} · {p.data.periode}</span></p>
+            <h3 id={`t-${p.id}`}>{p.data.titre}</h3>
+            <dl>
+              <div class="row"><dt>Contexte</dt><dd>{p.data.contexte}</dd></div>
+              <div class="row"><dt>Méthode</dt><dd>{p.data.methode}</dd></div>
+              <div class="row"><dt>Outils</dt><dd class="num outils">{p.data.outils.join(' · ')}</dd></div>
+              <div class="row"><dt>Résultat</dt><dd>{p.data.resultat}{p.data.lien && <> <a href={p.data.lien.url} rel="noopener" target="_blank">{p.data.lien.texte}&nbsp;↗</a></>}</dd></div>
+            </dl>
+          </div>
+          {Demo && <Demo />}
+          </div>
+          {p.data.demo === 'orange' && <AnnexeDax />}
+        </article>
+      );
+    })}
+  </div>
+</section>
+
+<style>
+  /* Le texte reste collé à l'écran uniquement le long de son tableau de bord (.cas-corps), jamais sur l'annexe. */
+  .cas { display: grid; gap: 36px; margin-top: 48px; }
+  .cas + .cas { margin-top: 72px; padding-top: 48px; border-top: 1px solid var(--filet); }
+  .cas-corps { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); gap: 36px; }
+  @media (max-width: 980px) { .cas-corps { grid-template-columns: minmax(0, 1fr); } }
+  .cas-texte { align-self: start; position: sticky; top: calc(var(--entete) + 24px); }
+  @media (max-width: 980px) { .cas-texte { position: static; } }
+  h3 { font-size: clamp(28px, 3vw, 40px); font-stretch: 85%; line-height: 1; margin: 10px 0 18px; }
+  dl { margin: 0; }
+  .row { display: grid; grid-template-columns: 7.5em minmax(0, 1fr); gap: 12px; border-top: 1px solid var(--filet); padding-block: 12px; font-size: 15px; }
+  dt { font-family: var(--mono); font-size: 12px; color: var(--orange-texte); padding-top: 3px; }
+  dd { margin: 0; }
+  .outils { font-size: 14px; }
+  dd a { color: var(--orange-texte); text-underline-offset: 3px; }
+</style>

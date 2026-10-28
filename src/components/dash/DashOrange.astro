@@ -1,0 +1,176 @@
+<figure class="fig-dash" id="dash-orange">
+  <div class="top">
+    <b>Figure 3.1 · Suivi des incidents</b>
+    <div class="seg" role="group" aria-label="Version du tableau de bord">
+      <button type="button" aria-pressed="false" data-v="avant">Avant</button>
+      <button type="button" aria-pressed="true" data-v="apres">Après</button>
+    </div>
+  </div>
+
+  <div class="v-apres">
+    <div class="mois" role="group" aria-label="Choisir le mois" id="o-mois"></div>
+    <div class="kpis">
+      <div class="panel"><span class="t">Tickets ouverts</span><span class="kpi" id="o-total">—</span><span class="delta" id="o-delta"></span></div>
+      <div class="panel"><span class="t">Critiques (P1)</span><span class="kpi" id="o-p1">—</span><span class="delta" id="o-p1part"></span></div>
+      <div class="panel"><span class="t">Ordres de travail</span><span class="kpi" id="o-wo">—</span><span class="delta">dans le mois</span></div>
+    </div>
+    <div class="panels">
+      <div class="panel"><span class="t">Par sévérité, de P1 (critique) à P4</span><svg id="o-sev" viewBox="0 0 260 130" role="img" aria-label="Tickets par sévérité pour le mois choisi"></svg></div>
+      <div class="panel"><span class="t">Par origine sur l'année : <span class="lg" style="--c:#3987e5">Client</span> <span class="lg" style="--c:#d95926">Interne</span> <span class="lg" style="--c:#199e70">Supervision</span></span><svg id="o-ori" viewBox="0 0 420 150" role="img" aria-label="Tickets par origine, mois par mois, le mois choisi est mis en avant"></svg></div>
+    </div>
+    <details class="donnees"><summary>Voir les données du mois</summary><div id="o-donnees"></div></details>
+  </div>
+
+  <div class="v-avant" hidden>
+    <div class="pbi">
+      <div class="pbi-head"><span>Report_Incidents_v3_FINAL</span><label>Month <select id="o-select"></select></label></div>
+      <div class="pbi-grid">
+        <div class="pbi-card"><span class="pbi-t">Count of Ticket ID</span><span id="a-total">—</span></div>
+        <div class="pbi-card"><span class="pbi-t">Count of Work Order ID</span><span id="a-wo">—</span></div>
+        <div class="pbi-card wide"><span class="pbi-t">Count of Ticket ID by Origin and Month</span><svg id="a-ori" viewBox="0 0 420 120" aria-hidden="true"></svg></div>
+        <div class="pbi-card"><span class="pbi-t">Count of Ticket ID by Severity</span><svg id="a-pie" viewBox="0 0 200 110" aria-hidden="true"></svg></div>
+        <div class="pbi-card"><span class="pbi-t">Service set label</span><table id="a-tab"></table></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip" hidden></div>
+  <figcaption class="source">Source : reconstitution à partir de la structure du rapport réel. Données fictives générées pour la démonstration, aucun chiffre Orange Business.</figcaption>
+</figure>
+
+<style is:global>
+  #dash-orange .v-apres, #dash-orange .v-avant { display: grid; gap: 10px; }
+  #dash-orange [hidden] { display: none; }
+  #dash-orange .pbi { background: #fff; color: #252423; font-family: 'Segoe UI', Arial, sans-serif; padding: 8px; display: grid; gap: 6px; }
+  #dash-orange .pbi-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 11px; color: #605E5C; }
+  #dash-orange .pbi-head select { font-size: 11px; }
+  #dash-orange .pbi-grid { display: grid; grid-template-columns: 1fr 1fr 1.3fr; gap: 6px; }
+  @media (max-width: 560px) { #dash-orange .pbi-grid { grid-template-columns: 1fr 1fr; } }
+  #dash-orange .pbi-card { border: 1px solid #E1DFDD; padding: 6px; display: grid; gap: 4px; align-content: start; font-size: 12px; min-width: 0; }
+  #dash-orange .pbi-card.wide { grid-column: 1 / -1; grid-row: 2; }
+  #dash-orange .pbi-t { font-size: 9px; color: #605E5C; }
+  #dash-orange .pbi-card table { font-size: 9px; border-collapse: collapse; width: 100%; }
+  #dash-orange .pbi-card th, #dash-orange .pbi-card td { text-align: left; padding: 2px 4px; border-bottom: 1px solid #EDEBE9; }
+</style>
+
+<script>
+  import { el, fmt, infobulle, boutons, presser, aleatoire, pct } from '../../scripts/viz.js';
+
+  const fig = document.getElementById('dash-orange');
+  const tip = infobulle(fig);
+  const MOIS = ['Jan', 'Fév', 'Mars', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
+  const MOIS_LONG = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  const MOIS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const SEV_COUL = ['#FF6B3D', '#FF8F6B', '#FFB397', '#FFD6C6'];
+  const ORI_COUL = ['#3987e5', '#d95926', '#199e70'];
+  const ORI_NOM = ['Client', 'Interne', 'Supervision'];
+  const PBI = ['#01B8AA', '#374649', '#FD625E'];
+
+  // Données fictives, identiques à chaque visite
+  const rnd = aleatoire(20260917);
+  const D = MOIS.map((m, i) => {
+    const total = Math.round(330 + 80 * Math.sin(i / 1.8) + rnd() * 70);
+    const p1 = Math.round(total * (0.025 + rnd() * 0.035));
+    const p2 = Math.round(total * (0.14 + rnd() * 0.08));
+    const p3 = Math.round(total * (0.37 + rnd() * 0.08));
+    const cli = Math.round(total * (0.62 + rnd() * 0.1));
+    const int = Math.round(total * (0.13 + rnd() * 0.07));
+    const offres = [0.5 + rnd() * 0.08, 0.24 + rnd() * 0.06, 0.13 + rnd() * 0.04];
+    offres.push(1 - offres[0] - offres[1] - offres[2]);
+    return { total, sev: [p1, p2, p3, total - p1 - p2 - p3], ori: [cli, int, total - cli - int], wo: Math.round(36 + rnd() * 34), offres };
+  });
+  const etat = { mois: 2 };
+
+  const boutonsMois = boutons(document.getElementById('o-mois'), MOIS, (i) => choisir(i), MOIS_LONG);
+
+  function rendreApres() {
+    const d = D[etat.mois], i = etat.mois;
+    presser(boutonsMois, (j) => j === i);
+    document.getElementById('o-total').textContent = fmt.format(d.total);
+    const v = i > 0 ? (d.total - D[i - 1].total) / D[i - 1].total * 100 : null;
+    document.getElementById('o-delta').textContent = v === null ? "premier mois de l'année" : `${v >= 0 ? '▲ +' : '▼ '}${pct(v)} % vs ${MOIS_LONG[i - 1]}`;
+    document.getElementById('o-p1').textContent = fmt.format(d.sev[0]);
+    document.getElementById('o-p1part').textContent = `${pct(d.sev[0] / d.total * 100)} % des tickets`;
+    document.getElementById('o-wo').textContent = fmt.format(d.wo);
+
+    const g = document.getElementById('o-sev'); g.innerHTML = '';
+    const max = Math.max(...d.sev), H = 92, base = 110;
+    d.sev.forEach((val, k) => {
+      const h = Math.max(2, val / max * H), x = 14 + k * 62;
+      const r = el('rect', { x, y: base - h, width: 46, height: h, rx: 3, fill: SEV_COUL[k] }, g);
+      el('text', { x: x + 23, y: base - h - 6, 'text-anchor': 'middle', 'font-size': 12, fill: '#F7F8FC', 'font-family': 'IBM Plex Mono, monospace' }, g, fmt.format(val));
+      el('text', { x: x + 23, y: 126, 'text-anchor': 'middle', 'font-size': 11, fill: '#8D97B5', 'font-family': 'IBM Plex Mono, monospace' }, g, 'P' + (k + 1));
+      r.addEventListener('mousemove', (e) => tip.montrer(e, `<b>P${k + 1} · ${MOIS_LONG[i]}</b><br>${fmt.format(val)} tickets (${pct(val / d.total * 100)} %)`));
+      r.addEventListener('mouseleave', tip.cacher);
+    });
+
+    const o = document.getElementById('o-ori'); o.innerHTML = '';
+    const maxT = Math.max(...D.map((x) => x.total));
+    const top = 10, bas = 128, Hh = bas - top, w = 22, pas = 34, x0 = 12;
+    [0.5, 1].forEach((f) => { const y = bas - f * Hh; el('line', { x1: 8, x2: 416, y1: y, y2: y, stroke: '#2B3A67', 'stroke-width': 1 }, o); });
+    D.forEach((m, j) => {
+      const x = x0 + j * pas; let y = bas;
+      const gr = el('g', { opacity: j === i ? 1 : 0.38 }, o);
+      m.ori.forEach((val, k) => {
+        const h = val / maxT * Hh;
+        el('rect', { x, y: y - h + (k ? 1 : 0), width: w, height: Math.max(0, h - (k ? 1 : 0)), rx: k === 2 ? 3 : 0, fill: ORI_COUL[k] }, gr);
+        y -= h;
+      });
+      el('text', { x: x + w / 2, y: 144, 'text-anchor': 'middle', 'font-size': 10, fill: j === i ? '#F7F8FC' : '#8D97B5', 'font-family': 'IBM Plex Mono, monospace' }, o, MOIS[j]);
+      const hit = el('rect', { x: x - 6, y: top, width: w + 12, height: Hh + 20, fill: 'transparent' }, o);
+      hit.style.cursor = 'pointer';
+      hit.addEventListener('click', () => choisir(j));
+      hit.addEventListener('mousemove', (e) => tip.montrer(e, `<b>${MOIS_LONG[j]}</b><br>${m.ori.map((val, k) => `<span style="color:${ORI_COUL[k]}">■</span> ${ORI_NOM[k]} : ${fmt.format(val)}`).join('<br>')}<br>Total : ${fmt.format(m.total)}`));
+      hit.addEventListener('mouseleave', tip.cacher);
+    });
+
+    document.getElementById('o-donnees').innerHTML =
+      `<table><caption>Tickets de ${MOIS_LONG[i]} (données fictives)</caption><tbody>` +
+      `<tr><th scope="row">Total</th><td>${fmt.format(d.total)}</td></tr>` +
+      d.sev.map((val, k) => `<tr><th scope="row">P${k + 1}</th><td>${fmt.format(val)}</td></tr>`).join('') +
+      d.ori.map((val, k) => `<tr><th scope="row">${ORI_NOM[k]}</th><td>${fmt.format(val)}</td></tr>`).join('') +
+      `<tr><th scope="row">Ordres de travail</th><td>${fmt.format(d.wo)}</td></tr></tbody></table>`;
+  }
+
+  // Version « avant » : mêmes données, couleurs par défaut, KPI noyés
+  const sel = document.getElementById('o-select');
+  MOIS_EN.forEach((m, i) => { const op = document.createElement('option'); op.value = String(i); op.textContent = m; sel.appendChild(op); });
+  sel.addEventListener('change', () => choisir(Number(sel.value)));
+
+  function rendreAvant() {
+    const d = D[etat.mois];
+    sel.value = String(etat.mois);
+    document.getElementById('a-total').textContent = String(d.total);
+    document.getElementById('a-wo').textContent = String(d.wo);
+    const o = document.getElementById('a-ori'); o.innerHTML = '';
+    const maxT = Math.max(...D.map((x) => Math.max(...x.ori)));
+    D.forEach((m, j) => {
+      m.ori.forEach((val, k) => { const h = val / maxT * 92; el('rect', { x: 6 + j * 34 + k * 9, y: 100 - h, width: 8, height: h, fill: PBI[k] }, o); });
+      el('text', { x: 6 + j * 34 + 13, y: 114, 'text-anchor': 'middle', 'font-size': 8, fill: '#605E5C', 'font-family': 'Segoe UI, Arial, sans-serif' }, o, MOIS_EN[j]);
+    });
+    const p = document.getElementById('a-pie'); p.innerHTML = '';
+    const coul = ['#E81123', '#FF8C00', '#FFF100', '#16C60C'];
+    let a0 = -Math.PI / 2; const cx = 55, cy = 55, R = 46;
+    d.sev.forEach((val, k) => {
+      const a1 = a0 + val / d.total * Math.PI * 2, large = a1 - a0 > Math.PI ? 1 : 0;
+      el('path', { d: `M${cx} ${cy} L${cx + R * Math.cos(a0)} ${cy + R * Math.sin(a0)} A${R} ${R} 0 ${large} 1 ${cx + R * Math.cos(a1)} ${cy + R * Math.sin(a1)} Z`, fill: coul[k] }, p);
+      el('rect', { x: 116, y: 18 + k * 18, width: 8, height: 8, fill: coul[k] }, p);
+      el('text', { x: 128, y: 26 + k * 18, 'font-size': 9, fill: '#605E5C', 'font-family': 'Segoe UI, Arial, sans-serif' }, p, `P${k + 1} ${val}`);
+      a0 = a1;
+    });
+    document.getElementById('a-tab').innerHTML = '<tr><th>Service set label</th><th>%GT Count of Ticket ID</th></tr>' +
+      d.offres.map((val, k) => `<tr><td>Offer_${'ABCD'[k]}_CCX</td><td>${(val * 100).toFixed(4)}%</td></tr>`).join('') +
+      '<tr><td>Total</td><td>100.0000%</td></tr>';
+  }
+
+  function choisir(i) { etat.mois = i; rendreApres(); rendreAvant(); }
+
+  const vues = Array.from(fig.querySelectorAll('.seg button'));
+  vues.forEach((b) => b.addEventListener('click', () => {
+    presser(vues, (i) => vues[i] === b);
+    fig.querySelector('.v-apres').hidden = b.dataset.v !== 'apres';
+    fig.querySelector('.v-avant').hidden = b.dataset.v !== 'avant';
+    tip.cacher();
+  }));
+  choisir(etat.mois);
+</script>

@@ -1,0 +1,170 @@
+<figure class="fig-dash" id="dash-bolt">
+  <div class="top"><b>Figure 3.2 · Ventes par heure et par enseigne</b></div>
+  <div class="filtres">
+    <div class="chips" role="group" aria-label="Types de cuisine affichés" id="b-cuisines"></div>
+    <div class="mois" role="group" aria-label="Jour de la semaine" id="b-jours"></div>
+  </div>
+  <div class="kpis">
+    <div class="panel"><span class="t">CA journalier moyen</span><span class="kpi" id="b-ca">—</span><span class="delta" id="b-ca-l"></span></div>
+    <div class="panel"><span class="t">Heure de pointe</span><span class="kpi" id="b-pic">—</span><span class="delta" id="b-pic-l"></span></div>
+    <div class="panel"><span class="t">Part de la 1<sup>re</sup> enseigne</span><span class="kpi" id="b-top">—</span><span class="delta" id="b-top-l"></span></div>
+  </div>
+  <div class="panel"><span class="t">CA par heure et par type de cuisine (k€)</span><svg id="b-ligne" viewBox="0 0 540 210" role="img" aria-label="Courbes du chiffre d'affaires par heure pour chaque type de cuisine sélectionné"></svg></div>
+  <div class="panel"><span class="t">Partition des ventes par enseigne · cliquez sur une case pour isoler sa cuisine</span><div class="treemap" id="b-tree"></div></div>
+  <details class="donnees"><summary>Voir les données</summary><div id="b-donnees"></div></details>
+  <div class="tip" hidden></div>
+  <figcaption class="source">Source : reconstitution du tableau de bord du projet. Données fictives et enseignes anonymisées (A, B, C…), aucun chiffre du jeu de données réel.</figcaption>
+</figure>
+
+<style is:global>
+  #dash-bolt .filtres { display: grid; gap: 6px; }
+  #dash-bolt .panel .t sup { color: inherit; font-size: 9px; }
+  #dash-bolt .treemap { position: relative; height: 230px; }
+  #dash-bolt .tuile { position: absolute; border: 2px solid var(--marine); padding: 6px 8px; color: var(--encre); font-family: var(--mono); font-size: 11px; text-align: left; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; overflow: hidden; }
+  #dash-bolt .tuile b { font-family: var(--display); font-stretch: 75%; font-size: 22px; line-height: 1; }
+  #dash-bolt .tuile:hover { filter: brightness(1.12); }
+</style>
+
+<script>
+  import { el, fmt, infobulle, boutons, presser, pct } from '../../scripts/viz.js';
+
+  const fig = document.getElementById('dash-bolt');
+  const tip = infobulle(fig);
+  const MONO = 'IBM Plex Mono, monospace';
+  const CUISINES = ['Burger', 'Italien', 'Japonais', 'Mexicain', 'Autres'];
+  const COUL = ['#3987e5', '#d95926', '#199e70', '#c98500', '#d55181'];
+  const POIDS = [1, 0.46, 0.38, 0.27, 0.55];
+  const JOURS = ['Tous', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+  const JOURS_LONG = ['la semaine', 'le lundi', 'le mardi', 'le mercredi', 'le jeudi', 'le vendredi', 'le samedi', 'le dimanche'];
+  const MULT = [1, 0.84, 0.81, 0.9, 0.95, 1.16, 1.27, 1.07];
+  const ENSEIGNES = [
+    [['A', 0.6], ['C', 0.22], ['E', 0.18]],
+    [['F', 0.56], ['H', 0.44]],
+    [['G', 0.62], ['K', 0.38]],
+    [['I', 1]],
+    [['B', 0.36], ['D', 0.3], ['J', 0.2], ['L', 0.14]],
+  ];
+  const g = (h, c, s) => Math.exp(-Math.pow(h - c, 2) / s);
+  // Courbe de la journée : pic du midi, pic du soir, commandes de nuit
+  function profil(h, c) {
+    const midi = [0.55, 0.62, 0.42, 0.5, 0.6][c], soir = [1, 0.95, 1.1, 0.9, 0.85][c], nuit = [0.32, 0.12, 0.08, 0.2, 0.15][c];
+    return 0.03 + midi * g(h, 12.6, 2.2) + soir * g(h, 20.6, 3.2) + nuit * (g(h, 0, 1.6) + g(h, 24, 1.6));
+  }
+  const ca = (c, h, j) => 640 * POIDS[c] * profil(h, c) * MULT[j];
+  const etat = { cuisines: [true, true, true, true, true], jour: 0 };
+
+  const chips = boutons(document.getElementById('b-cuisines'), CUISINES.map((n, i) => `<span class="sw" style="background:${COUL[i]}"></span>${n}`), (i) => {
+    if (etat.cuisines[i] && etat.cuisines.filter(Boolean).length === 1) return;
+    etat.cuisines[i] = !etat.cuisines[i];
+    rendre();
+  });
+  const jours = boutons(document.getElementById('b-jours'), JOURS, (i) => { etat.jour = i; rendre(); });
+
+  let dernier = null;
+  function rendre() {
+    const sel = [0, 1, 2, 3, 4].filter((c) => etat.cuisines[c]), j = etat.jour;
+    presser(chips, (i) => etat.cuisines[i]);
+    presser(jours, (i) => i === j);
+    const parHeure = [];
+    let total = 0;
+    for (let h = 0; h < 24; h++) { const s = sel.reduce((t, c) => t + ca(c, h, j), 0); parHeure.push(s); total += s; }
+    const pic = parHeure.indexOf(Math.max(...parHeure));
+    document.getElementById('b-ca').textContent = `${fmt.format(Math.round(total))} k€`;
+    document.getElementById('b-ca-l').textContent = `${sel.length === 5 ? 'toutes cuisines' : sel.length + ' cuisine' + (sel.length > 1 ? 's' : '')}, ${JOURS_LONG[j]}`;
+    document.getElementById('b-pic').textContent = `${pic} h`;
+    document.getElementById('b-pic-l').textContent = `${fmt.format(Math.round(parHeure[pic]))} k€ sur cette heure`;
+
+    // Courbes par cuisine
+    const svg = document.getElementById('b-ligne'); svg.innerHTML = '';
+    const X0 = 44, X1 = 528, Y0 = 18, Y1 = 180;
+    let max = 0;
+    sel.forEach((c) => { for (let h = 0; h < 24; h++) max = Math.max(max, ca(c, h, j)); });
+    const pasY = max > 300 ? 100 : 50, haut = Math.ceil(max / pasY) * pasY;
+    const X = (h) => X0 + h / 23 * (X1 - X0);
+    const Y = (v) => Y1 - v / haut * (Y1 - Y0);
+    for (let v = 0; v <= haut; v += pasY) {
+      el('line', { x1: X0, x2: X1, y1: Y(v), y2: Y(v), stroke: '#2B3A67', 'stroke-width': 1 }, svg);
+      el('text', { x: X0 - 8, y: Y(v) + 4, 'text-anchor': 'end', 'font-size': 10, fill: '#8D97B5', 'font-family': MONO }, svg, v);
+    }
+    [0, 3, 6, 9, 12, 15, 18, 21].forEach((h) => el('text', { x: X(h), y: 200, 'text-anchor': 'middle', 'font-size': 10, fill: '#8D97B5', 'font-family': MONO }, svg, `${String(h).padStart(2, '0')}:00`));
+    sel.forEach((c) => {
+      let d = '';
+      for (let h = 0; h < 24; h++) d += `${h ? 'L' : 'M'}${X(h).toFixed(1)} ${Y(ca(c, h, j)).toFixed(1)}`;
+      el('path', { d, fill: 'none', stroke: COUL[c], 'stroke-width': 2, 'stroke-linejoin': 'round' }, svg);
+    });
+    const croix = el('line', { x1: 0, x2: 0, y1: Y0, y2: Y1, stroke: '#F7F8FC', 'stroke-width': 1, opacity: 0 }, svg);
+    const points = sel.map((c) => el('circle', { r: 4, fill: COUL[c], stroke: '#16224A', 'stroke-width': 2, opacity: 0 }, svg));
+    const zone = el('rect', { x: X0, y: Y0, width: X1 - X0, height: Y1 - Y0, fill: 'transparent' }, svg);
+    zone.addEventListener('mousemove', (e) => {
+      const r = svg.getBoundingClientRect(), vx = (e.clientX - r.left) / r.width * 540;
+      const h = Math.max(0, Math.min(23, Math.round((vx - X0) / (X1 - X0) * 23)));
+      croix.setAttribute('x1', X(h)); croix.setAttribute('x2', X(h)); croix.setAttribute('opacity', 0.5);
+      points.forEach((p, k) => { p.setAttribute('cx', X(h)); p.setAttribute('cy', Y(ca(sel[k], h, j))); p.setAttribute('opacity', 1); });
+      tip.montrer(e, `<b>${h}:00 → ${h + 1}:00</b><br>${sel.map((c) => `<span style="color:${COUL[c]}">■</span> ${CUISINES[c]} : ${fmt.format(Math.round(ca(c, h, j)))} k€`).join('<br>')}`);
+    });
+    zone.addEventListener('mouseleave', () => { croix.setAttribute('opacity', 0); points.forEach((p) => p.setAttribute('opacity', 0)); tip.cacher(); });
+
+    // Partition par enseigne
+    const items = [];
+    sel.forEach((c) => {
+      let tc = 0;
+      for (let h = 0; h < 24; h++) tc += ca(c, h, j);
+      ENSEIGNES[c].forEach(([nom, part]) => items.push({ nom: `Enseigne ${nom}`, c, v: tc * part }));
+    });
+    items.sort((a, b) => b.v - a.v);
+    document.getElementById('b-top').textContent = `${Math.round(items[0].v / total * 100)} %`;
+    document.getElementById('b-top-l').textContent = `${items[0].nom} · ${CUISINES[items[0].c]}`;
+    dernier = [items, total];
+    dessinerTree(items, total);
+
+    document.getElementById('b-donnees').innerHTML = `<table><caption>CA par enseigne, ${JOURS_LONG[j]} (k€, données fictives)</caption><tbody>` +
+      items.map((it) => `<tr><th scope="row">${it.nom} (${CUISINES[it.c]})</th><td>${fmt.format(Math.round(it.v))}</td><td>${pct(it.v / total * 100)} %</td></tr>`).join('') + '</tbody></table>';
+  }
+
+  // Treemap « squarified » : des cases aussi carrées que possible
+  function dessinerTree(items, total) {
+    const box = document.getElementById('b-tree'); box.innerHTML = '';
+    let W = box.clientWidth, H = box.clientHeight;
+    if (!W) return;
+    const somme = items.reduce((s, it) => s + it.v, 0);
+    const restants = items.map((it) => ({ it, a: it.v / somme * W * H }));
+    let x = 0, y = 0, w = W, h = H;
+    const pire = (row, cote) => {
+      let s = 0, mx = 0, mn = Infinity;
+      row.forEach((r) => { s += r.a; mx = Math.max(mx, r.a); mn = Math.min(mn, r.a); });
+      return Math.max(cote * cote * mx / (s * s), (s * s) / (cote * cote * mn));
+    };
+    const poserLigne = (row) => {
+      const s = row.reduce((t, r) => t + r.a, 0);
+      if (w >= h) { const cw = s / h; let cy = y; row.forEach((r) => { const rh = r.a / cw; tuile(r.it, x, cy, cw, rh); cy += rh; }); x += cw; w -= cw; }
+      else { const rh = s / w; let cx = x; row.forEach((r) => { const rw = r.a / rh; tuile(r.it, cx, y, rw, rh); cx += rw; }); y += rh; h -= rh; }
+    };
+    let ligne = [];
+    while (restants.length) {
+      const cote = Math.min(w, h);
+      if (!ligne.length || pire([...ligne, restants[0]], cote) <= pire(ligne, cote)) ligne.push(restants.shift());
+      else { poserLigne(ligne); ligne = []; }
+    }
+    if (ligne.length) poserLigne(ligne);
+
+    function tuile(it, tx, ty, tw, th) {
+      const d = document.createElement('button');
+      d.type = 'button'; d.className = 'tuile';
+      d.style.cssText = `left:${tx}px;top:${ty}px;width:${tw}px;height:${th}px;background:${COUL[it.c]}`;
+      const pc = Math.round(it.v / total * 100);
+      d.setAttribute('aria-label', `${it.nom}, ${CUISINES[it.c]}, ${pc} % des ventes. Isoler cette cuisine.`);
+      if (tw > 64 && th > 38) d.innerHTML = `<span>${it.nom}</span><b>${pc} %</b>`;
+      d.addEventListener('mousemove', (e) => tip.montrer(e, `<b>${it.nom}</b> · ${CUISINES[it.c]}<br>${fmt.format(Math.round(it.v))} k€ · ${pc} %`));
+      d.addEventListener('mouseleave', tip.cacher);
+      d.addEventListener('click', () => {
+        const seule = etat.cuisines.filter(Boolean).length === 1 && etat.cuisines[it.c];
+        etat.cuisines = etat.cuisines.map((_, k) => seule || k === it.c);
+        tip.cacher();
+        rendre();
+      });
+      box.appendChild(d);
+    }
+  }
+  new ResizeObserver(() => { if (dernier) dessinerTree(dernier[0], dernier[1]); }).observe(document.getElementById('b-tree'));
+  rendre();
+</script>

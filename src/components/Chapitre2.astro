@@ -1,0 +1,133 @@
+---
+import { getCollection } from 'astro:content';
+const etapes = (await getCollection('etapes')).sort((a, b) => a.data.annee - b.data.annee);
+
+// Échelle horizontale de la figure : 2018 → 2026,4 sur x = 40 → 620
+const X0 = 40, X1 = 620, A0 = 2018, A1 = 2026.4;
+const x = (a: number) => X0 + ((a - A0) / (A1 - A0)) * (X1 - X0);
+const annees = [2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
+const courbe = 'M40 285 C 120 282, 170 270, 220 250 S 300 205, 345 175 S 430 110, 480 90 S 580 52, 620 44';
+---
+<section class="section dark" id="ch2" aria-labelledby="t-ch2">
+  <div class="inner">
+    <p class="kicker"><span class="n">02</span><span>Chapitre 2</span></p>
+    <h2 class="h-chap" id="t-ch2">Le virage data</h2>
+    <div class="trajet" id="trajet">
+      <ol class="etapes">
+        {etapes.map((e) => (
+          <li class="etape" data-x={x(e.data.annee)} data-label={e.data.etiquette}>
+            <span class="d">{e.data.date}</span>
+            <b>{e.data.titre}</b>
+            <p>{e.data.texte}</p>
+          </li>
+        ))}
+      </ol>
+      <figure class="figure">
+        <svg id="courbe" viewBox="0 0 640 340" role="img" aria-labelledby="courbe-titre">
+          <title id="courbe-titre">Figure 2.1 : trajectoire de 2018 à 2026. Un point avance sur la courbe à mesure que les étapes défilent.</title>
+          <rect width="640" height="340" fill="#0A1433" />
+          <g stroke="#2B3A67" stroke-width="1">
+            <line x1="40" y1="300" x2="620" y2="300" />
+            <line x1="40" y1="40" x2="40" y2="300" />
+            {annees.map((a) => <line x1={x(a)} y1="300" x2={x(a)} y2="306" />)}
+          </g>
+          <path id="c-bg" d={courbe} fill="none" stroke="#4A5A8C" stroke-width="3" stroke-dasharray="2 7" stroke-linecap="round" />
+          <path id="c-fg" d={courbe} fill="none" stroke="#FF6B3D" stroke-width="3" stroke-linecap="round" />
+          <g id="c-jalons"></g>
+          <circle id="c-pt" cx="40" cy="285" r="9" fill="#FF6B3D" stroke="#0A1433" stroke-width="3" />
+          <text id="c-lab" x="54" y="273" font-family="IBM Plex Mono, monospace" font-size="13" fill="#F7F8FC">{etapes[0].data.etiquette}</text>
+          <g font-family="IBM Plex Mono, monospace" font-size="12" fill="#8D97B5">
+            {annees.filter((a) => a % 2 === 0).map((a) => <text x={x(a)} y="324" text-anchor="middle">{a}</text>)}
+            <text x="52" y="56">part de la data dans mon travail</text>
+          </g>
+        </svg>
+        <figcaption><span><b>Figure 2.1</b> · Trajectoire 2018 → 2026</span><span id="c-etape" aria-live="polite">Étape 1 / {etapes.length}</span></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<style>
+  .trajet { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: 40px; align-items: start; margin-top: 36px; }
+  .etapes { list-style: none; margin: 0; padding: clamp(40px, 8vh, 90px) 0 clamp(120px, 30vh, 320px); display: grid; }
+  .etape { border-top: 1px solid var(--bleu); padding: 14px 0; display: grid; gap: 4px; align-content: start; min-height: clamp(380px, 72vh, 680px); cursor: pointer; opacity: .45; transition: opacity .4s; }
+  .etape.on { opacity: 1; border-top: 2px solid var(--orange); }
+  .etape.on .d { color: var(--orange); }
+  .d { font-family: var(--mono); font-size: 12px; color: var(--brume); }
+  .etape b { font-family: var(--display); font-stretch: 95%; font-size: clamp(19px, 2vw, 24px); }
+  .etape p { font-size: 15px; color: var(--brume); max-width: 42ch; }
+  .figure { margin: 0; display: grid; gap: 10px; min-width: 0; position: sticky; top: calc(var(--entete) + 24px + env(safe-area-inset-top, 0px)); }
+  figcaption { font-family: var(--mono); font-size: 12px; color: var(--brume); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-top: 1px solid var(--bleu); padding-top: 8px; }
+  figcaption b { color: var(--blanc); font-weight: 500; }
+  svg { width: 100%; height: auto; display: block; }
+  @media (max-width: 980px) {
+    .trajet { grid-template-columns: minmax(0, 1fr); gap: 0; }
+    .figure { order: -1; top: calc(var(--entete) + env(safe-area-inset-top, 0px)); background: var(--nuit); z-index: 2; padding-block: 8px; }
+    .etapes { padding: 0 0 clamp(80px, 20vh, 200px); }
+    .etape { min-height: clamp(340px, 66vh, 600px); }
+  }
+  /* Sans JavaScript, toutes les étapes restent lisibles */
+  :global(html:not(.js)) .etape { opacity: 1; min-height: 0; }
+</style>
+
+<script>
+  const fg = document.getElementById('c-fg') as unknown as SVGPathElement;
+  const pt = document.getElementById('c-pt')!;
+  const lab = document.getElementById('c-lab')!;
+  const compteur = document.getElementById('c-etape')!;
+  const jalons = document.getElementById('c-jalons')!;
+  const etapes = Array.from(document.querySelectorAll<HTMLElement>('#trajet .etape'));
+  const reduit = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const L = fg.getTotalLength();
+
+  // Longueur de courbe correspondant à une abscisse (recherche dichotomique)
+  function longueurPourX(x: number) {
+    let a = 0, b = L;
+    for (let n = 0; n < 30; n++) { const m = (a + b) / 2; if (fg.getPointAtLength(m).x < x) a = m; else b = m; }
+    return (a + b) / 2;
+  }
+  const cibles = etapes.map((e) => longueurPourX(Number(e.dataset.x)));
+  for (const c of cibles) {
+    const p = fg.getPointAtLength(c);
+    const j = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    j.setAttribute('cx', String(p.x)); j.setAttribute('cy', String(p.y)); j.setAttribute('r', '4');
+    j.setAttribute('fill', '#0A1433'); j.setAttribute('stroke', '#8D97B5'); j.setAttribute('stroke-width', '2');
+    jalons.appendChild(j);
+  }
+  fg.style.strokeDasharray = `${L} ${L}`;
+
+  let actuel = 0, actif = -1, anim = 0;
+  function poser(len: number) {
+    const p = fg.getPointAtLength(len);
+    fg.style.strokeDashoffset = String(L - len);
+    pt.setAttribute('cx', String(p.x)); pt.setAttribute('cy', String(p.y));
+    const droite = p.x > 470;
+    lab.setAttribute('x', String(droite ? p.x - 16 : p.x + 16));
+    lab.setAttribute('text-anchor', droite ? 'end' : 'start');
+    lab.setAttribute('y', String(p.y - 12));
+    actuel = len;
+  }
+  function aller(i: number) {
+    if (i === actif) return;
+    actif = i;
+    etapes.forEach((e, j) => e.classList.toggle('on', j === i));
+    lab.textContent = etapes[i].dataset.label ?? '';
+    compteur.textContent = `Étape ${i + 1} / ${etapes.length}`;
+    const de = actuel, vers = cibles[i];
+    cancelAnimationFrame(anim);
+    if (reduit) { poser(vers); return; }
+    const t0 = performance.now(), duree = 1300;
+    const pas = (t: number) => {
+      const k = Math.min(1, (t - t0) / duree);
+      const e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+      poser(de + (vers - de) * e);
+      if (k < 1) anim = requestAnimationFrame(pas);
+    };
+    anim = requestAnimationFrame(pas);
+  }
+  poser(cibles[0]); aller(0);
+  const obs = new IntersectionObserver((entrees) => {
+    for (const en of entrees) if (en.isIntersecting) aller(etapes.indexOf(en.target as HTMLElement));
+  }, { rootMargin: '-38% 0px -52% 0px' });
+  etapes.forEach((e, i) => { obs.observe(e); e.addEventListener('click', () => aller(i)); });
+</script>

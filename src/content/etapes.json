@@ -1,0 +1,8 @@
+[
+  { "id": "em", "annee": 2018.7, "date": "Sept. 2018", "titre": "EM Normandie", "texte": "Programme Grande École, Comptabilité & Finance. Les premiers tableaux Excel.", "etiquette": "EM Normandie" },
+  { "id": "leeds", "annee": 2019.8, "date": "Oct. 2019 → Janv. 2020", "titre": "Échange à Leeds Beckett", "texte": "Un semestre en anglais.", "etiquette": "Leeds" },
+  { "id": "maasai", "annee": 2021.7, "date": "Sept. 2021 → Juil. 2023", "titre": "Excel devient mon outil quotidien", "texte": "Suivi des factures de ~30 fournisseurs et des dépenses au Groupe Maasaï.", "etiquette": "Groupe Maasaï" },
+  { "id": "databird", "annee": 2023.85, "date": "Nov. 2023 → Janv. 2024", "titre": "Bootcamp DataBird", "texte": "Python, SQL et Power BI de bout en bout sur le cas Bolt Food.", "etiquette": "DataBird" },
+  { "id": "orange", "annee": 2024.7, "date": "Sept. 2024 → Mars 2026", "titre": "Orange Business + MSc Data Management", "texte": "Paris School of Business × EFREI, en alternance. Diplôme obtenu.", "etiquette": "Orange Business" },
+  { "id": "suite", "annee": 2026.4, "date": "2026 →", "titre": "Prochain chapitre", "texte": "Consultant BI ou Data Analyst, en finance ou en marketing.", "etiquette": "Votre équipe ?" }
+]

@@ -1,0 +1,35 @@
+---
+import Base from '../layouts/Base.astro';
+import site from '../content/site.json';
+---
+<Base titre={`Mentions légales · ${site.nom}`} description="Mentions légales et données personnelles du site de Dorian Kihouba.">
+  <section class="section">
+    <div class="inner texte">
+      <p class="kicker"><span class="n">Annexe</span><span>Informations légales</span></p>
+      <h1 class="h-chap">Mentions légales</h1>
+
+      <h2>Éditeur</h2>
+      <p>Ce site est le portfolio personnel de {site.nom}, à titre non professionnel. Contact : <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
+
+      <h2>Hébergement</h2>
+      <p>Cloudflare, Inc., 101 Townsend Street, San Francisco, CA 94107, États-Unis (service Cloudflare Pages).</p>
+
+      <h2>Données personnelles et cookies</h2>
+      <p>Ce site ne dépose aucun cookie et ne contient aucun formulaire. Aucune donnée personnelle n'est collectée. La mesure d'audience, si elle est activée, utilise Cloudflare Web Analytics, qui ne dépose pas de cookie et ne suit pas les visiteurs d'un site à l'autre.</p>
+      <p>Les messages envoyés à l'adresse de contact servent uniquement à vous répondre.</p>
+
+      <h2>Contenus</h2>
+      <p>Les tableaux de bord présentés sont des reconstitutions avec des données fictives. Ils ne contiennent aucune donnée confidentielle d'Orange Business ni d'aucune autre organisation. Les noms de marques cités appartiennent à leurs propriétaires. Les résultats AssessFirst sont publiés avec l'accord de la personne évaluée.</p>
+
+      <h2>Crédits</h2>
+      <p>Polices : Archivo (Omnibus-Type) et IBM Plex (IBM), sous licence SIL Open Font License, hébergées sur ce site. Site construit avec Astro.</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .texte { max-width: 760px; }
+  h2 { font-size: 22px; font-stretch: 90%; margin: 36px 0 8px; }
+  p { margin-bottom: 10px; }
+  a { color: var(--orange-texte); text-underline-offset: 3px; }
+</style>

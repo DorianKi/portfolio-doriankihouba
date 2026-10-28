@@ -1,0 +1,36 @@
+---
+import site from '../content/site.json';
+const liens = [
+  { href: '/#ch1', texte: '1 Business' },
+  { href: '/#ch2', texte: '2 Data' },
+  { href: '/#ch3', texte: '3 Projets' },
+  { href: '/#ch4', texte: '4 Hors bureau' },
+  { href: '/#contact', texte: 'Contact' },
+];
+---
+<header class="entete">
+  <div class="inner">
+    <a class="nom" href="/">{site.nom}</a>
+    <nav aria-label="Chapitres">
+      {liens.map((l) => <a href={l.href}>{l.texte}</a>)}
+    </nav>
+    <a class="cv" href={site.cv} download>CV · PDF</a>
+  </div>
+</header>
+
+<style>
+  .entete {
+    position: sticky; top: 0; z-index: 20;
+    background: var(--nuit); color: var(--blanc);
+    border-bottom: 1px solid var(--bleu);
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .inner { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: var(--entete); }
+  .nom { font-family: var(--display); font-weight: 700; font-stretch: 112%; letter-spacing: .01em; text-decoration: none; }
+  nav { display: flex; gap: 22px; font-family: var(--mono); font-size: 13px; color: var(--brume); }
+  nav a { text-decoration: none; padding-block: 8px; }
+  nav a:hover { color: var(--blanc); }
+  .cv { font-family: var(--mono); font-size: 13px; color: var(--encre); background: var(--orange); padding: 8px 12px; text-decoration: none; font-weight: 600; white-space: nowrap; }
+  .cv:hover { background: var(--blanc); }
+  @media (max-width: 860px) { nav { display: none; } }
+</style>
