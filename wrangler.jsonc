@@ -1,0 +1,15 @@
+// Configuration Cloudflare Workers : site statique servi depuis dist/ (résultat de `npm run build`).
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "portfolio-doriankihouba",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    // Adresse inconnue : affiche dist/404.html avec le code 404
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  },
+  // Adresse gratuite *.workers.dev conservée tant que doriankihouba.com n'est pas branché
+  "workers_dev": true,
+  "preview_urls": true
+}
