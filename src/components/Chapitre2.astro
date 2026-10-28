@@ -50,11 +50,13 @@ const courbe = 'M40 285 C 120 282, 170 270, 220 250 S 300 205, 345 175 S 430 110
 <style>
   .trajet { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: 40px; align-items: start; margin-top: 36px; }
   .etapes { list-style: none; margin: 0; padding: clamp(40px, 8vh, 90px) 0 clamp(120px, 30vh, 320px); display: grid; }
-  .etape { border-top: 1px solid var(--bleu); padding: 14px 0; display: grid; gap: 4px; align-content: start; min-height: clamp(380px, 72vh, 680px); cursor: pointer; opacity: .45; transition: opacity .4s; }
-  .etape.on { opacity: 1; border-top: 2px solid var(--orange); }
+  .etape { border-top: 1px solid var(--bleu); padding: 14px 0; display: grid; gap: 4px; align-content: start; min-height: clamp(380px, 72vh, 680px); cursor: pointer; }
+  /* Étape inactive en brume (contraste 6,4:1), étape lue en blanc : jamais de transparence sous le seuil AA */
+  .etape.on { border-top: 2px solid var(--orange); }
   .etape.on .d { color: var(--orange); }
+  .etape.on b { color: var(--blanc); }
   .d { font-family: var(--mono); font-size: 12px; color: var(--brume); }
-  .etape b { font-family: var(--display); font-stretch: 95%; font-size: clamp(19px, 2vw, 24px); }
+  .etape b { font-family: var(--display); font-stretch: 95%; font-size: clamp(19px, 2vw, 24px); color: var(--brume); transition: color .4s; }
   .etape p { font-size: 15px; color: var(--brume); max-width: 42ch; }
   .figure { margin: 0; display: grid; gap: 10px; min-width: 0; position: sticky; top: calc(var(--entete) + 24px + env(safe-area-inset-top, 0px)); }
   figcaption { font-family: var(--mono); font-size: 12px; color: var(--brume); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-top: 1px solid var(--bleu); padding-top: 8px; }
@@ -67,7 +69,7 @@ const courbe = 'M40 285 C 120 282, 170 270, 220 250 S 300 205, 345 175 S 430 110
     .etape { min-height: clamp(340px, 66vh, 600px); }
   }
   /* Sans JavaScript, toutes les étapes restent lisibles */
-  :global(html:not(.js)) .etape { opacity: 1; min-height: 0; }
+  :global(html:not(.js)) .etape { min-height: 0; }
 </style>
 
 <script>
